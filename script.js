@@ -63,9 +63,16 @@ for(var i=0;i<operator.length;i++)
         {
             var output = getOutput();
             var history = getHistory();
-            if(output!="")
+            if(history!="" && output=="")
             {
-                output = reverseNumberFormat(output);
+                if(isNaN(history[history.length-1]))
+                {
+                    history = history.substr(0,history.length-1);
+                }
+            }
+            if(output!="" || history!="")
+            {
+                output = output==""?output:reverseNumberFormat(output);
                 history = history+output;
                 if(this.id == "=")
                 {
@@ -102,3 +109,42 @@ for(var i=0;i<number.length;i++)
     });
 }
 
+var microphone = document.getElementById('microphone');
+microphone.onclick = function(){
+    microphone.classList.add("record");
+    var recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition || window.mozSpeechRecognition || window.msSpeechRecognition)();
+    recognition.lang = 'en-US';
+    recognition.start();
+    operations = {"plus":"+",
+				 "minus":"-",
+				 "multiply":"*",
+				 "multiplied":"*",
+				 "divide":"/",
+				 "divided":"/",
+                 "reminder":"%"}
+                 
+    recognition.onresult = function(event){
+        var input = event.results[0][0].transcript;
+        for(property in operations){
+			input= input.replace(property, operations[property]);
+		}
+        document.getElementById("output-value").innerText = input;
+        setTimeout(function(){
+            evaluate(input)
+        },2000);
+        microphone.classList.remove("record");
+    }
+    
+}
+
+function evaluate(input){
+    try{
+        var result = eval(input);
+        document.getElementById("output-value").innerText = result;
+    }
+    catch(e)
+    {
+        console.log(e);
+        document.getElementById("output-value").innerText = "";
+    }
+}
